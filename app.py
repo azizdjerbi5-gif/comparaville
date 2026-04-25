@@ -5,9 +5,6 @@ import time
 import plotly.graph_objects as go
 import pandas as pd
 
-# ─────────────────────────────────────────────────────────────
-# CONFIG
-# ─────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="ComparaVilles",
     page_icon="🏙️",
@@ -15,7 +12,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# CSS minimal
 st.markdown("""
 <style>
     .block-container { padding-top: 1.5rem; padding-bottom: 1rem; }
@@ -27,28 +23,19 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────
-# DONNÉES
-# ─────────────────────────────────────────────────────────────
 @st.cache_data
 def load_cities():
     with open("data/cities_data.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
-cities      = load_cities()
-city_index  = {c["name"]: c for c in cities}
-names       = sorted(city_index.keys())
+cities     = load_cities()
+city_index = {c["name"]: c for c in cities}
+names      = sorted(city_index.keys())
 
-# ─────────────────────────────────────────────────────────────
-# EN-TÊTE
-# ─────────────────────────────────────────────────────────────
 st.title("🏙️ ComparaVilles")
 st.caption("Comparateur de villes françaises (+20 000 hab.) · Données INSEE Filosofi 2021 · SAE Outils Décisionnels")
 st.divider()
 
-# ─────────────────────────────────────────────────────────────
-# SÉLECTION DES VILLES
-# ─────────────────────────────────────────────────────────────
 col_sel1, col_sel2 = st.columns(2)
 with col_sel1:
     name_a = st.selectbox("🔴 Ville A", names, index=names.index("Lyon") if "Lyon" in names else 0)
@@ -60,12 +47,8 @@ ca = city_index[name_a]
 cb = city_index[name_b]
 COLOR_A = "#C85A1E"
 COLOR_B = "#1B5EA0"
-
 st.divider()
 
-# ─────────────────────────────────────────────────────────────
-# HELPERS
-# ─────────────────────────────────────────────────────────────
 def fmt_pop(n):
     if n >= 1_000_000: return f"{n/1_000_000:.2f} M"
     if n >= 1_000:     return f"{n/1_000:.0f} k"
@@ -78,29 +61,7 @@ def fmt_eur(v):
 def val(city, key):
     return city.get(key)
 
-def bar_chart(title, labels, vals_a, vals_b, unit="", note=""):
-    """Graphique barres côte à côte Plotly."""
-    fig = go.Figure()
-    fig.add_trace(go.Bar(name=name_a, x=labels, y=vals_a,
-                         marker_color=COLOR_A, text=[f"{v}{unit}" if v else "—" for v in vals_a],
-                         textposition="outside"))
-    fig.add_trace(go.Bar(name=name_b, x=labels, y=vals_b,
-                         marker_color=COLOR_B, text=[f"{v}{unit}" if v else "—" for v in vals_b],
-                         textposition="outside"))
-    fig.update_layout(
-        title=title, barmode="group",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        margin=dict(t=60, b=40, l=40, r=20),
-        yaxis_title=unit, plot_bgcolor="#FEFCF8", paper_bgcolor="#FEFCF8",
-        height=350,
-    )
-    if note:
-        fig.add_annotation(text=note, xref="paper", yref="paper", x=0, y=-0.12,
-                           showarrow=False, font=dict(size=10, color="#999"), align="left")
-    return fig
-
 def horiz_compare(label, va, vb, unit="", lower_is_better=False, fmt_fn=None):
-    """Ligne de comparaison horizontale avec barres proportionnelles."""
     if va is None and vb is None:
         return
     va = va or 0; vb = vb or 0
@@ -134,9 +95,6 @@ def horiz_compare(label, va, vb, unit="", lower_is_better=False, fmt_fn=None):
     </div>
     """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────
-# ONGLETS
-# ─────────────────────────────────────────────────────────────
 tab_gen, tab_emp, tab_rev, tab_met = st.tabs(
     ["📊 Général", "💼 Emploi", "💰 Revenus", "🌤️ Météo"]
 )
@@ -145,7 +103,6 @@ tab_gen, tab_emp, tab_rev, tab_met = st.tabs(
 # ONGLET 1 — GÉNÉRAL
 # ══════════════════════════════════════════════════════════════
 with tab_gen:
-    # Cartes héros
     c1, c2 = st.columns(2)
     with c1:
         st.markdown(f"#### 🔴 {ca['name']}")
@@ -162,7 +119,6 @@ with tab_gen:
         m2.metric("Revenu médian/UC", fmt_eur(val(cb,"rev_med")))
         m3.metric("Gini", f"{val(cb,'gini'):.3f}" if val(cb,"gini") else "—")
 
-    # Explication Gini
     with st.expander("ℹ️ Comprendre le coefficient de Gini"):
         st.markdown("""
         Le **coefficient de Gini** mesure les **inégalités de revenus** dans une ville.
@@ -178,7 +134,6 @@ with tab_gen:
 
     st.divider()
 
-    # Graphique population
     fig_pop = go.Figure(go.Bar(
         x=[ca["name"], cb["name"]],
         y=[ca["pop"], cb["pop"]],
@@ -193,11 +148,9 @@ with tab_gen:
     )
     st.plotly_chart(fig_pop, use_container_width=True)
 
-    # Comparaison barres
     st.subheader("Comparaison des indicateurs")
     horiz_compare("Population", ca["pop"], cb["pop"], fmt_fn=lambda v: f"{v:,}".replace(",", " "))
-    horiz_compare("Revenu médian (€/UC/an)", val(ca,"rev_med"), val(cb,"rev_med"),
-                  fmt_fn=fmt_eur)
+    horiz_compare("Revenu médian (€/UC/an)", val(ca,"rev_med"), val(cb,"rev_med"), fmt_fn=fmt_eur)
     horiz_compare("1er quartile (Q1)", val(ca,"rev_q1"), val(cb,"rev_q1"), fmt_fn=fmt_eur)
     horiz_compare("3e quartile (Q3)", val(ca,"rev_q3"), val(cb,"rev_q3"), fmt_fn=fmt_eur)
     horiz_compare("Gini (↓ = moins d'inégalités)", val(ca,"gini"), val(cb,"gini"),
@@ -234,48 +187,41 @@ with tab_emp:
 
     c1, c2 = st.columns(2)
     with c1:
-        fig_cho = bar_chart(
-            "Poids des allocations chômage dans les revenus des ménages (%)",
-            [ca["name"], cb["name"]],
-            [val(ca,"pcho")], [val(cb,"pcho")],
-            unit=" %",
-            note="% des allocations chômage dans le revenu fiscal de référence (source : INSEE Filosofi 2021)"
-        )
-        # Recréer avec 1 seul groupe par ville
         fig_cho = go.Figure()
         fig_cho.add_trace(go.Bar(name=ca["name"], x=[ca["name"]], y=[val(ca,"pcho")],
-                                  marker_color=COLOR_A,
-                                  text=[f"{val(ca,'pcho')} %" if val(ca,'pcho') else "—"],
-                                  textposition="outside"))
+                                 marker_color=COLOR_A,
+                                 text=[f"{val(ca,'pcho')} %" if val(ca,'pcho') else "—"],
+                                 textposition="outside"))
         fig_cho.add_trace(go.Bar(name=cb["name"], x=[cb["name"]], y=[val(cb,"pcho")],
-                                  marker_color=COLOR_B,
-                                  text=[f"{val(cb,'pcho')} %" if val(cb,'pcho') else "—"],
-                                  textposition="outside"))
-        fig_cho.update_layout(title="Poids des allocations chômage dans les revenus des ménages (%)",
-                               showlegend=False, yaxis_title="% du revenu fiscal",
-                               plot_bgcolor="#FEFCF8", paper_bgcolor="#FEFCF8",
-                               height=320, margin=dict(t=60,b=30))
+                                 marker_color=COLOR_B,
+                                 text=[f"{val(cb,'pcho')} %" if val(cb,'pcho') else "—"],
+                                 textposition="outside"))
+        fig_cho.update_layout(
+            title="Poids des allocations chômage dans les revenus des ménages (%)",
+            showlegend=False, yaxis_title="% du revenu fiscal",
+            plot_bgcolor="#FEFCF8", paper_bgcolor="#FEFCF8",
+            height=320, margin=dict(t=60, b=30))
         st.plotly_chart(fig_cho, use_container_width=True)
 
     with c2:
         fig_tsa = go.Figure()
         fig_tsa.add_trace(go.Bar(name=ca["name"], x=[ca["name"]], y=[val(ca,"ptsa")],
-                                  marker_color=COLOR_A,
-                                  text=[f"{val(ca,'ptsa')} %" if val(ca,'ptsa') else "—"],
-                                  textposition="outside"))
+                                 marker_color=COLOR_A,
+                                 text=[f"{val(ca,'ptsa')} %" if val(ca,'ptsa') else "—"],
+                                 textposition="outside"))
         fig_tsa.add_trace(go.Bar(name=cb["name"], x=[cb["name"]], y=[val(cb,"ptsa")],
-                                  marker_color=COLOR_B,
-                                  text=[f"{val(cb,'ptsa')} %" if val(cb,'ptsa') else "—"],
-                                  textposition="outside"))
-        fig_tsa.update_layout(title="Poids des salaires dans les revenus des ménages (%)",
-                               showlegend=False, yaxis_title="% du revenu fiscal",
-                               plot_bgcolor="#FEFCF8", paper_bgcolor="#FEFCF8",
-                               height=320, margin=dict(t=60,b=30))
+                                 marker_color=COLOR_B,
+                                 text=[f"{val(cb,'ptsa')} %" if val(cb,'ptsa') else "—"],
+                                 textposition="outside"))
+        fig_tsa.update_layout(
+            title="Poids des salaires dans les revenus des ménages (%)",
+            showlegend=False, yaxis_title="% du revenu fiscal",
+            plot_bgcolor="#FEFCF8", paper_bgcolor="#FEFCF8",
+            height=320, margin=dict(t=60, b=30))
         st.plotly_chart(fig_tsa, use_container_width=True)
 
     st.divider()
     st.subheader("Composition des revenus — comparaison détaillée")
-
     horiz_compare("% foyers avec rev. d'activité",
                   val(ca,"pact"), val(cb,"pact"), fmt_fn=lambda v: f"{v:.1f} %")
     horiz_compare("Part salaires et traitements",
@@ -286,7 +232,6 @@ with tab_emp:
     horiz_compare("Part pensions et retraites",
                   val(ca,"pben"), val(cb,"pben"), fmt_fn=lambda v: f"{v:.1f} %")
 
-    # Graphique radar structure
     st.divider()
     cats = ["Salaires", "Activité", "Moins chômage", "Moins retraites", "Revenus", "Égalité"]
     max_tsa  = max(val(ca,"ptsa") or 0, val(cb,"ptsa") or 0) or 1
@@ -310,11 +255,7 @@ with tab_emp:
     for city, color, rvals in [(ca, COLOR_A, radar_vals(ca)), (cb, COLOR_B, radar_vals(cb))]:
         fig_radar.add_trace(go.Scatterpolar(
             r=rvals + [rvals[0]], theta=cats + [cats[0]],
-            fill="toself", name=city["name"],
-            line_color=color,
-            fillcolor=color.replace("#", "rgba(").replace("C8","200,").replace("5A","90,")
-                            .replace("1E","30,").replace("1B","27,").replace("5E","94,")
-                            .replace("A0","160,") + "0.15)" if "#" in color else color
+            fill="toself", name=city["name"], line_color=color,
         ))
     fig_radar.update_layout(
         polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
@@ -323,7 +264,6 @@ with tab_emp:
         legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5)
     )
     st.plotly_chart(fig_radar, use_container_width=True)
-
     st.markdown('<p class="source-note">Sources : INSEE Filosofi 2021 — revenus fiscaux localisés par commune</p>',
                 unsafe_allow_html=True)
 
@@ -353,7 +293,6 @@ with tab_rev:
         | D9 | 90 % | Seuil à partir duquel on est dans les 10 % les plus aisés |
         """)
 
-    # Ordre correct par percentile croissant
     decile_labels = ["D1\n(10%)", "D2\n(20%)", "Q1\n(25%)", "D3\n(30%)", "D4\n(40%)",
                      "Médiane\n(50%)", "D6\n(60%)", "D7\n(70%)", "Q3\n(75%)", "D8\n(80%)", "D9\n(90%)"]
     keys_a = [val(ca,k) for k in ["d1","d2","rev_q1","d3","d4","rev_med","d6","d7","rev_q3","d8","d9"]]
@@ -383,17 +322,15 @@ with tab_rev:
     )
     st.plotly_chart(fig_dec, use_container_width=True)
 
-    # Tableau comparatif
     st.divider()
     st.subheader("Tableau comparatif")
     rows = []
-    for label, ka, kb in zip(
+    for label, k in zip(
         ["D1 (10%)", "D2 (20%)", "Q1 (25%)", "D3 (30%)", "D4 (40%)",
          "Médiane (50%)", "D6 (60%)", "D7 (70%)", "Q3 (75%)", "D8 (80%)", "D9 (90%)"],
-        ["d1","d2","rev_q1","d3","d4","rev_med","d6","d7","rev_q3","d8","d9"],
         ["d1","d2","rev_q1","d3","d4","rev_med","d6","d7","rev_q3","d8","d9"]
     ):
-        va, vb = val(ca, ka), val(cb, kb)
+        va, vb = val(ca, k), val(cb, k)
         ecart = int(va - vb) if va and vb else None
         rows.append({
             "Indicateur": label,
@@ -402,9 +339,7 @@ with tab_rev:
             "Écart": (f"+{ecart:,} €".replace(",", " ") if ecart and ecart > 0
                       else f"{ecart:,} €".replace(",", " ") if ecart else "—"),
         })
-    df_table = pd.DataFrame(rows)
-    st.dataframe(df_table, use_container_width=True, hide_index=True)
-
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
     st.markdown('<p class="source-note">Sources : INSEE Filosofi 2021 — revenus fiscaux de référence par UC et par commune</p>',
                 unsafe_allow_html=True)
 
@@ -459,27 +394,22 @@ with tab_met:
     with st.spinner("Récupération des données météo…"):
         try:
             lat_a, lon_a = geocode(ca["name"])
-            time.sleep(1.1)  # Nominatim rate limit
+            time.sleep(1.1)
             lat_b, lon_b = geocode(cb["name"])
             wa = fetch_weather(lat_a, lon_a)
             wb = fetch_weather(lat_b, lon_b)
 
-            # Météo actuelle
             c1, c2 = st.columns(2)
             for col, city, w, color in [(c1, ca, wa, "🔴"), (c2, cb, wb, "🔵")]:
                 with col:
                     cur = w["current"]
                     st.markdown(f"### {color} {city['name']}")
-                    icon = wicon(cur["weathercode"])
-                    desc = wdesc(cur["weathercode"])
-                    st.markdown(f"## {icon} {round(cur['temperature_2m'])}°C — {desc}")
+                    st.markdown(f"## {wicon(cur['weathercode'])} {round(cur['temperature_2m'])}°C — {wdesc(cur['weathercode'])}")
                     m1, m2, m3, m4 = st.columns(4)
                     m1.metric("Humidité", f"{cur['relative_humidity_2m']} %")
                     m2.metric("Vent", f"{round(cur['wind_speed_10m'])} km/h")
                     m3.metric("Précip.", f"{cur['precipitation']} mm")
                     m4.metric("Ressenti", f"{round(cur['temperature_2m'] - cur['wind_speed_10m']*0.07)}°C")
-
-                    # Prévisions 7 jours
                     st.markdown("**Prévisions 7 jours :**")
                     d = w["daily"]
                     fc_cols = st.columns(7)
@@ -496,18 +426,15 @@ with tab_met:
                             </div>
                             """, unsafe_allow_html=True)
 
-            # Graphique températures
             st.divider()
             from datetime import datetime
             d_a, d_b = wa["daily"], wb["daily"]
             labels = [datetime.strptime(t, "%Y-%m-%d").strftime("%a %d/%m") for t in d_a["time"][:7]]
-
             fig_clim = go.Figure()
             for name_c, d, color in [(ca["name"], d_a, COLOR_A), (cb["name"], d_b, COLOR_B)]:
                 fig_clim.add_trace(go.Scatter(
                     x=labels, y=[round(v) for v in d["temperature_2m_max"][:7]],
-                    name=f"{name_c} max", line=dict(color=color, width=2.5),
-                    mode="lines+markers"
+                    name=f"{name_c} max", line=dict(color=color, width=2.5), mode="lines+markers"
                 ))
                 fig_clim.add_trace(go.Scatter(
                     x=labels, y=[round(v) for v in d["temperature_2m_min"][:7]],
@@ -515,8 +442,7 @@ with tab_met:
                     mode="lines+markers", marker=dict(size=6)
                 ))
             fig_clim.update_layout(
-                title="Températures prévues — 7 jours",
-                yaxis_title="°C",
+                title="Températures prévues — 7 jours", yaxis_title="°C",
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
                 plot_bgcolor="#FEFCF8", paper_bgcolor="#FEFCF8",
                 height=350, margin=dict(t=60, b=30),
