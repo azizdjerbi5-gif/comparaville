@@ -235,7 +235,7 @@ with tab_emp:
     c1, c2 = st.columns(2)
     with c1:
         fig_cho = bar_chart(
-            "Part des allocations chômage dans le revenu total",
+            "Poids des allocations chômage dans les revenus des ménages (%)",
             [ca["name"], cb["name"]],
             [val(ca,"pcho")], [val(cb,"pcho")],
             unit=" %",
@@ -267,7 +267,7 @@ with tab_emp:
                                   marker_color=COLOR_B,
                                   text=[f"{val(cb,'ptsa')} %" if val(cb,'ptsa') else "—"],
                                   textposition="outside"))
-        fig_tsa.update_layout(title="Part des salaires dans le revenu total",
+        fig_tsa.update_layout(title="Poids des salaires dans les revenus des ménages (%)",
                                showlegend=False, yaxis_title="% du revenu fiscal",
                                plot_bgcolor="#FEFCF8", paper_bgcolor="#FEFCF8",
                                height=320, margin=dict(t=60,b=30))
