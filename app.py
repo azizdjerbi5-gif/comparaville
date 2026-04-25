@@ -251,7 +251,7 @@ with tab_emp:
                                   marker_color=COLOR_B,
                                   text=[f"{val(cb,'pcho')} %" if val(cb,'pcho') else "—"],
                                   textposition="outside"))
-        fig_cho.update_layout(title="Part allocations chômage dans le revenu total",
+        fig_cho.update_layout(title="Poids des allocations chômage dans les revenus des ménages (%)",
                                showlegend=False, yaxis_title="% du revenu fiscal",
                                plot_bgcolor="#FEFCF8", paper_bgcolor="#FEFCF8",
                                height=320, margin=dict(t=60,b=30))
